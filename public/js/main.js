@@ -50,6 +50,32 @@ window.onload = function () {
         }
     }
 
+    class Map {
+        static generate( scene, mapData ) {
+            let map = {};
+            Object.keys( mapData ).forEach( ( key ) => {
+                map[key] = scene.physics.add.staticGroup();
+
+                mapData[key].forEach( ( element ) => {
+                    let color = Number.parseInt( element.fill, 16 );
+                    let alpha = Number.parseFloat( element.fillOpacity ) || 1;
+
+                    let x = Number.parseInt( element.x, 10 ) + scene.boundX;
+                    let y = Number.parseInt( element.y, 10 ) + scene.boundY;
+                    let w = Number.parseInt( element.width, 10 );
+                    let h = Number.parseInt( element.height, 10 );
+
+                    let rect = scene.add.rectangle( x, y, w, h, color, alpha )
+                        .setOrigin( 0 );
+
+                    map[key].add( rect );
+                } );
+            } );
+
+            return map;
+        }
+    }
+
     class MainScene extends Phaser.Scene {
         constructor() {
             super( {
@@ -71,123 +97,22 @@ window.onload = function () {
             this.boundW = -2 * this.boundX;
             this.boundH = -2 * this.boundY;
 
-            this.assets = [
-                {
-                    "key": "iw_1",
-                    "path": "/assets/inner_walls/1.svg",
-                    "x": 494,
-                    "y": 888,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_2",
-                    "path": "/assets/inner_walls/2.svg",
-                    "x": 317,
-                    "y": 888,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_3",
-                    "path": "/assets/inner_walls/3.svg",
-                    "x": 584,
-                    "y": 888,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_4",
-                    "path": "/assets/inner_walls/4.svg",
-                    "x": 305,
-                    "y": 888,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_5",
-                    "path": "/assets/inner_walls/5.svg",
-                    "x": 357,
-                    "y": 620,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_6",
-                    "path": "/assets/inner_walls/6.svg",
-                    "x": 1062,
-                    "y": 740,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_7",
-                    "path": "/assets/inner_walls/7.svg",
-                    "x": 596,
-                    "y": 728,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_8",
-                    "path": "/assets/inner_walls/8.svg",
-                    "x": 1229,
-                    "y": 728,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_9",
-                    "path": "/assets/inner_walls/9.svg",
-                    "x": 768,
-                    "y": 728,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_10",
-                    "path": "/assets/inner_walls/10.svg",
-                    "x": 584,
-                    "y": 336,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_11",
-                    "path": "/assets/inner_walls/11.svg",
-                    "x": 512,
-                    "y": 608,
-                    "angle": 0
-                },
-                {
-                    "key": "iw_12",
-                    "path": "/assets/inner_walls/12.svg",
-                    "x": 84,
-                    "y": 608,
-                    "angle": 0
-                }
-            ]
-
         }
 
         preload() {
             this.load.setBaseURL( 'http://localhost:3000' );
-            this.load.image( 'body', 'assets/pose_1_heavy.svg' );
-            this.load.image( 'rifle', 'assets/assault_rifle.svg' );
-            this.load.image( 'head', 'assets/gas.svg' );
-            this.load.image( 'map', 'assets/bg-1.jpg' );
-            this.assets.forEach( ( asset ) => {
-                this.load.image( asset.key, asset.path );
-            } );
+            this.load.svg( 'body', 'assets/pose_1_heavy.svg' );
+            this.load.svg( 'rifle', 'assets/assault_rifle.svg' );
+            this.load.svg( 'head', 'assets/gas.svg' );
+            this.load.json( 'map', 'assets/maps/1.json' );
         };
 
         create() {
 
-            this.map = this.add.group();
+            // Building map with physics
+            this.map = Map.generate(this, this.cache.json.get( 'map' ));
 
-            this.assets.forEach( ( asset ) => {
-                let obj = this.add.image(
-                    asset.x + this.boundX,
-                    asset.y + this.boundY,
-                    asset.key )
-                    .setOrigin( 0 )
-                    .setRotation( asset.angle / 180 * Math.PI );
-                this.physics.world.enable( obj );
-                obj.body.immovable = true;
-                this.map.add( obj );
-            } );
-
-            // Enabling physics
+            // Enabling world bounds
             this.physics.world.setBounds(
                 this.boundX, this.boundY,
                 this.boundW, this.boundH,
@@ -222,6 +147,9 @@ window.onload = function () {
         };
 
         update() {
+            Object.keys( this.map ).forEach( ( key ) => {
+                this.physics.world.collide( this.player.container, this.map[key] );
+            } );
             this.player.update(
                 this.controls.w.isDown,
                 this.controls.a.isDown,
@@ -230,7 +158,6 @@ window.onload = function () {
                 this.controls.cursorX + this.cameras.main.scrollX,
                 this.controls.cursorY + this.cameras.main.scrollY
             );
-            this.physics.world.collide( this.player.container, this.map );
         };
 
         setupMainCamera() {
