@@ -1,9 +1,10 @@
 window.onload = function () {
 
     class Player {
-        constructor( scene, x, y ) {
+        constructor( scene, x, y, raycaster ) {
+            this.scene = scene;
             this.angle = 0;
-            this.maxSpeed = 200;
+            this.speed = 200;
             this.fov = Math.PI / 2;
 
             this.body = scene.add.sprite( 10, 0, 'body' );
@@ -18,27 +19,31 @@ window.onload = function () {
             scene.physics.world.enable( this.container );
             this.container.body
                 .setCircle( 36, -36, -36 )
-                .setMaxVelocity( this.maxSpeed )
                 .setCollideWorldBounds( true );
+
+            this.raycaster = raycaster;
+            this.makeRaycast();
         }
 
         update( w, a, s, d, x, y ) {
-            this.modifyPosition( w, a, s, d );
             this.modifyAngle( x, y );
+            this.modifyPosition( w, a, s, d );
+            this.fovPolygon.destroy();
+            this.makeRaycast();
         }
 
         modifyPosition( w, a, s, d ) {
             if ( d && !a )
-                this.container.body.setVelocityX( 300 );
+                this.container.body.setVelocityX( this.speed );
             else if ( a && !d )
-                this.container.body.setVelocityX( -300 );
+                this.container.body.setVelocityX( -this.speed );
             else
                 this.container.body.setVelocityX( 0 );
 
             if ( s && !w )
-                this.container.body.setVelocityY( 300 );
+                this.container.body.setVelocityY( this.speed );
             else if ( w && !s )
-                this.container.body.setVelocityY( -300 );
+                this.container.body.setVelocityY( -this.speed );
             else
                 this.container.body.setVelocityY( 0 );
         }
@@ -50,6 +55,17 @@ window.onload = function () {
                 x, y
             );
             this.container.setRotation( this.angle );
+        }
+
+        makeRaycast() {
+            let fovPolygonPoints = this.raycaster.generateIntersectionPoints(
+                this.container.x,
+                this.container.y,
+                this.angle,
+                this.fov
+            );
+            this.fovPolygon = this.scene.add.polygon( 0, 0, fovPolygonPoints, 0xffffff, 0.3 )
+                .setOrigin( 0 );
         }
     }
 
@@ -127,28 +143,23 @@ window.onload = function () {
     }
 
     class Raycaster {
-        constructor( scene ) {
-            this.scene = scene;
+        constructor( uniquePoints, segments ) {
+            this.uniquePoints = uniquePoints;
+            this.segments = segments;
         }
 
-        generateIntersectionPoints( x, y, playerAngle, fov, dist ) {
+        generateIntersectionPoints( x, y, playerAngle, fov ) {
 
-            let availablePoints = this.scene.uniquePoints;
+            let availablePoints = this.uniquePoints;
 
             let edgeAngles = [
                 playerAngle - fov / 2,
-                playerAngle - fov / 2 + 0.00001,
-                playerAngle + fov / 2 - 0.00001,
                 playerAngle + fov / 2
             ];
-
-            // console.log( "I", edgeAngles[3] );
 
             let intersectionPoints = [{
                 x, y, angle: -Infinity
             }];
-
-            // let intersectionPoints = [];
 
             // Intersections of FOV edges
             edgeAngles.forEach( ( angle ) => {
@@ -166,8 +177,8 @@ window.onload = function () {
                 let initAngle = (Math.PI + Phaser.Math.Angle.Between( point.x, point.y, x, y ));
 
                 let coeff = 2 * Math.PI;
-                if ( !(initAngle > coeff + edgeAngles[0] && initAngle < coeff + edgeAngles[3]) &&
-                    !(initAngle > edgeAngles[0] && initAngle < edgeAngles[3]) ) return;
+                if ( !(initAngle > coeff + edgeAngles[0] && initAngle < coeff + edgeAngles[1]) &&
+                    !(initAngle > edgeAngles[0] && initAngle < edgeAngles[1]) ) return;
 
                 for ( let i = -1; i < 2; i++ ) {
                     let angle = initAngle + i * 0.00001;
@@ -184,16 +195,14 @@ window.onload = function () {
 
 
             return intersectionPoints.sort( ( a, b ) =>
-                Phaser.Math.Angle.Normalize(Phaser.Math.Angle.Normalize(a.angle) - playerAngle + fov) -
-                Phaser.Math.Angle.Normalize(Phaser.Math.Angle.Normalize(b.angle) - playerAngle + fov)
+                Phaser.Math.Angle.Normalize( Phaser.Math.Angle.Normalize( a.angle ) - playerAngle + fov ) -
+                Phaser.Math.Angle.Normalize( Phaser.Math.Angle.Normalize( b.angle ) - playerAngle + fov )
             );
         }
 
         getClosestIntersection( ray ) {
-            let segments = this.scene.segments;
-
             let closestIntersection = null;
-            segments.forEach( ( segment ) => {
+            this.segments.forEach( ( segment ) => {
                 let intersection = Raycaster.getIntersection( ray, segment );
                 if ( !intersection ) return;
                 if ( !closestIntersection || intersection.param < closestIntersection.param ) {
@@ -206,20 +215,17 @@ window.onload = function () {
 
         static getIntersection( r, s ) {
 
-            if ( r.dx / r.mag === s.dx / s.mag && r.dy / r.mag === s.dy / s.mag ) {
+            if ( r.dx / r.mag === s.dx / s.mag && r.dy / r.mag === s.dy / s.mag )
                 return null;
-            }
 
 
             let T2 = (r.dx * (s.y - r.y) + r.dy * (r.x - s.x)) / (s.dx * r.dy - s.dy * r.dx);
-            if ( T2 < 0 || T2 > 1 ) {
+            if ( T2 < 0 || T2 > 1 )
                 return null;
-            }
 
             let T1 = (s.x + s.dx * T2 - r.x) / r.dx;
-            if ( T1 < 0 ) {
+            if ( T1 < 0 )
                 return null;
-            }
 
             return {
                 x: r.x + r.dx * T1,
@@ -273,8 +279,6 @@ window.onload = function () {
             // Building maps
             let { map, uniquePoints, segments } = Map.generate( this, this.cache.json.get( 'map' ) );
             this.map = map;
-            this.uniquePoints = uniquePoints;
-            this.segments = segments;
 
             // Enabling world bounds
             this.physics.world.setBounds(
@@ -283,30 +287,7 @@ window.onload = function () {
                 true, true, true, true );
 
             // Adding player
-            this.player = new Player( this,
-                this.boundX + this.boundW / 2,
-                this.boundY + this.boundH / 2 );
-
-
-            this.raycaster = new Raycaster( this, this.uniquePoints, this.player );
-            // this.dots = this.raycaster.generateIntersectionPoints(
-            //     this.player.container.x,
-            //     this.player.container.y,
-            //     this.player.angle,
-            //     this.player.fov );
-            // console.log( this.dots );
-            // this.dots.forEach( ( dot ) => {
-            //     this.add.rectangle( dot.x, dot.y, 4, 4, 0x00ff00 ).setOrigin( 0.5 );
-            // } );
-
-
-            this.view = this.add.polygon( 0, 0,
-                this.raycaster.generateIntersectionPoints(
-                    this.player.container.x,
-                    this.player.container.y,
-                    this.player.angle,
-                    this.player.fov
-                ), 0xffffff, 0.3 ).setOrigin( 0 );
+            this.player = new Player( this, 0, 0, new Raycaster( uniquePoints, segments ) );
 
             // Setting up main camera
             this.setupMainCamera();
@@ -343,36 +324,28 @@ window.onload = function () {
                 this.controls.cursorX + this.cameras.main.scrollX,
                 this.controls.cursorY + this.cameras.main.scrollY
             );
-            this.view.destroy();
-            let pts = this.raycaster.generateIntersectionPoints(
-                this.player.container.x,
-                this.player.container.y,
-                this.player.angle,
-                this.player.fov
-            );
-            // console.log( "R", pts[1].angle, pts[pts.length-1].angle );
-            this.view = this.add.polygon( 0, 0,
-                pts, 0xffffff, 0.3 )
-                .setOrigin( 0 );
         };
 
         setupMainCamera() {
             this.cameras.main
                 .setName( 'main' )
+                .setZoom( 0.75 )
                 .setBounds( this.boundX, this.boundY, this.boundW, this.boundH )
                 .setSize( this.maincamSize, this.maincamSize )
                 .setPosition( this.maincamOffset, 0 )
-                .setBackgroundColor( 0x444444 )
-                .startFollow( this.player.container, false, 0.1, 0.1 );
+                .startFollow( this.player.container, false, 0.4, 0.4 );
         };
 
         setupMinimap() {
+            let coeff = this.maincamOffset / this.maincamSize;
             this.minimap
                 .setName( 'mini' )
-                .setZoom( 0.1 )
-                .setSize( this.maincamOffset, this.maincamOffset )
+                .setZoom( coeff * 0.75 )
+                .setBounds( this.boundX, this.boundY, this.boundW, this.boundH )
+                .setSize( coeff * this.maincamSize, coeff * this.maincamSize )
                 .setPosition( window.innerWidth - this.maincamOffset, 0 )
-                .setBackgroundColor( 0x002244 );
+                .setBackgroundColor( 0x002244 )
+                .startFollow( this.player.container, false, 0.4, 0.4 );
         };
 
     }
@@ -385,6 +358,11 @@ window.onload = function () {
         scene: [MainScene],
         fps: 30,
     };
+
+    // TODO: remove camera shaking
+    // TODO: scale camera zoom depending on screen size
+    // TODO: fix improper rotation angle
+    // TODO: fix collisions
 
     const game = new Phaser.Game( config );
 };
