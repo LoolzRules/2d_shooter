@@ -1,10 +1,162 @@
 window.onload = function () {
 
+    class Weapon {
+        constructor( type ) {
+            Object.keys( Weapon.Stats[type] ).forEach( ( key ) => {
+                this[key] = stats[key];
+            } );
+        }
+
+        static get Enum() {
+            return Object.freeze( {
+                PISTOL: 0,
+                SILENCED_PISTOL: 1,
+                UZI: 2,
+                ASSAULT_RIFLE: 3,
+                SHOTGUN: 4,
+                TASER: 5,
+                GAS_MARKER: 6,
+            } )
+        }
+
+        static get Stats() {
+            return {
+                [Weapon.Enum.PISTOL]: {
+                    fire_rate: 2,
+                    damage: 15,
+                    spread: 5,
+                    range: Infinity,
+                    textureKey: 'w_pistol',
+                },
+                [Weapon.Enum.SILENCED_PISTOL]: {
+                    fire_rate: 2,
+                    damage: 10,
+                    spread: 0,
+                    range: Infinity,
+                    textureKey: 'w_suppressed_pistol',
+                },
+                [Weapon.Enum.UZI]: {
+                    fire_rate: 4,
+                    damage: 10,
+                    spread: 30,
+                    range: Infinity,
+                    textureKey: 'w_uzi',
+                },
+                [Weapon.Enum.ASSAULT_RIFLE]: {
+                    fire_rate: 3,
+                    damage: 10,
+                    spread: 8,
+                    range: Infinity,
+                    textureKey: 'w_assault_rifle',
+                },
+                [Weapon.Enum.SHOTGUN]: {
+                    fire_rate: 1,
+                    damage: 15,
+                    spread: 30,
+                    range: 1000,
+                    textureKey: 'w_shotgun',
+                },
+                [Weapon.Enum.TASER]: {
+                    fire_rate: 1,
+                    damage: 0,
+                    spread: 2,
+                    range: 200,
+                    textureKey: 'w_taser',
+                },
+                [Weapon.Enum.GAS_MARKER]: {
+                    fire_rate: 2,
+                    damage: 0,
+                    spread: 8,
+                    range: 2000,
+                    textureKey: 'w_gas_marker',
+                },
+            };
+        }
+    }
+
+    class Head {
+        constructor( type ) {
+            Object.keys( Head.Stats[type] ).forEach( ( key ) => {
+                this[key] = stats[key];
+            } );
+        }
+
+        static get Enum() {
+            return Object.freeze( {
+                NONE: 0,
+                HELMET: 1,
+                GAS_MASK: 2,
+                NIGHT_VISION: 3,
+            } )
+        }
+
+        static get Stats() {
+            return {
+                [Head.Enum.NONE]: {
+                    armor: 0,
+                    fov: 120,
+                    key: 'h_none',
+                },
+                [Head.Enum.HELMET]: {
+                    armor: 1,
+                    fov: 90,
+                    key: 'h_helmet',
+                },
+                [Head.Enum.GAS_MASK]: {
+                    armor: 0,
+                    fov: 60,
+                    key: 'h_gas',
+                },
+                [Head.Enum.NIGHT_VISION]: {
+                    armor: 0,
+                    fov: 90,
+                    key: 'h_night',
+                },
+            };
+        }
+    }
+
+    class Body {
+        constructor( type ) {
+            Object.keys( Body.Stats[type] ).forEach( ( key ) => {
+                this[key] = stats[key];
+            } );
+        }
+
+        static get Enum() {
+            return Object.freeze( {
+                NONE: 0,
+                LIGHT: 1,
+                HEAVY: 2,
+            } )
+        }
+
+        static get Stats() {
+            return {
+                [Body.Enum.NONE]: {
+                    armor: 0,
+                    speed: 1,
+                    textureKey: ['b_none_1', 'b_none_2'],
+                },
+                [Body.Enum.LIGHT]: {
+                    armor: 1,
+                    speed: 0.9,
+                    textureKey: ['b_light_1', 'b_light_2'],
+                },
+                [Body.Enum.HEAVY]: {
+                    armor: 2,
+                    speed: 0.8,
+                    textureKey: ['b_heavy_1', 'b_heavy_2'],
+                },
+            };
+        }
+    }
+
     class Player {
         constructor( scene, x, y, raycaster ) {
             this.scene = scene;
             this.angle = 0;
-            this.speed = 200;
+            this.speed = 300;
             this.fov = Math.PI / 2;
 
             this.body = scene.add.sprite( 10, 0, 'body' );
@@ -33,27 +185,49 @@ window.onload = function () {
         }
 
         modifyPosition( w, a, s, d ) {
-            if ( d && !a )
-                this.container.body.setVelocityX( this.speed );
-            else if ( a && !d )
-                this.container.body.setVelocityX( -this.speed );
-            else
-                this.container.body.setVelocityX( 0 );
+            if ( d && !a ) this.container.body.setVelocityX( this.speed );
+            else if ( a && !d ) this.container.body.setVelocityX( -this.speed );
+            else this.container.body.setVelocityX( 0 );
 
-            if ( s && !w )
-                this.container.body.setVelocityY( this.speed );
-            else if ( w && !s )
-                this.container.body.setVelocityY( -this.speed );
-            else
-                this.container.body.setVelocityY( 0 );
+            if ( s && !w ) this.container.body.setVelocityY( this.speed );
+            else if ( w && !s ) this.container.body.setVelocityY( -this.speed );
+            else this.container.body.setVelocityY( 0 );
+
+            // // Smooth as hell but no collisions
+            // if ( d && !a ) {
+            //     this.container.x += this.speed / 60;
+            //     this.container.body.x += this.speed / 60;
+            // }
+            // else if ( a && !d ) {
+            //     this.container.x -= this.speed / 60;
+            //     this.container.body.x -= this.speed / 60;
+            // }
+            //
+            // if ( s && !w ) {
+            //     this.container.y += this.speed / 60;
+            //     this.container.body.y += this.speed / 60;
+            // } else if ( w && !s ) {
+            //     this.container.y -= this.speed / 60;
+            //     this.container.body.y -= this.speed / 60;
+            // }
         }
 
         modifyAngle( x, y ) {
+
             this.angle = Phaser.Math.Angle.Between(
-                this.container.x + (window.innerWidth - window.innerHeight) / 2,
+                this.container.x + this.scene.cameraProps.offset,
                 this.container.y + 0,
                 x, y
             );
+
+            // console.log(
+            //     this.container.x + this.scene.cameraProps.offset,
+            //     this.container.y + 0,
+            //     x,
+            //     y,
+            //     this.container.body.touching.none
+            // );
+
             this.container.setRotation( this.angle );
         }
 
@@ -256,8 +430,16 @@ window.onload = function () {
                 },
             } );
 
-            this.maincamSize = window.innerHeight;
-            this.maincamOffset = (window.innerWidth - window.innerHeight) / 2;
+            let maincamSize = window.innerHeight;
+            let maincamOffset = (window.innerWidth - window.innerHeight) / 2;
+
+            this.cameraProps = {
+                size: maincamSize,
+                offset: maincamOffset,
+                zoom: Math.round( maincamSize / 70 ) / 10,
+                lerp: 1,
+                minimapCoefficient: maincamOffset / maincamSize,
+            };
 
             this.boundX = -900;
             this.boundY = -600;
@@ -268,9 +450,9 @@ window.onload = function () {
 
         preload() {
             this.load.setBaseURL( 'http://localhost:3000' );
-            this.load.svg( 'body', 'assets/pose_1_heavy.svg' );
-            this.load.svg( 'rifle', 'assets/assault_rifle.svg' );
-            this.load.svg( 'head', 'assets/gas.svg' );
+            this.load.svg( 'body', 'assets/body/b_light_1.svg' );
+            this.load.svg( 'rifle', 'assets/weapon/w_assault_rifle.svg' );
+            this.load.svg( 'head', 'assets/head/h_gas.svg' );
             this.load.json( 'map', 'assets/maps/1.json' );
         };
 
@@ -288,6 +470,11 @@ window.onload = function () {
 
             // Adding player
             this.player = new Player( this, 0, 0, new Raycaster( uniquePoints, segments ) );
+
+            // Enabling collisions
+            Object.keys( this.map ).forEach( ( key ) => {
+                this.physics.world.addCollider( this.player.container, this.map[key] );
+            } );
 
             // Setting up main camera
             this.setupMainCamera();
@@ -313,39 +500,36 @@ window.onload = function () {
         };
 
         update() {
-            Object.keys( this.map ).forEach( ( key ) => {
-                this.physics.world.collide( this.player.container, this.map[key] );
-            } );
             this.player.update(
                 this.controls.w.isDown,
                 this.controls.a.isDown,
                 this.controls.s.isDown,
                 this.controls.d.isDown,
                 this.controls.cursorX + this.cameras.main.scrollX,
-                this.controls.cursorY + this.cameras.main.scrollY
+                this.controls.cursorY + this.cameras.main.scrollY,
             );
         };
 
         setupMainCamera() {
             this.cameras.main
                 .setName( 'main' )
-                .setZoom( 0.75 )
+                .setZoom( this.cameraProps.zoom )
                 .setBounds( this.boundX, this.boundY, this.boundW, this.boundH )
-                .setSize( this.maincamSize, this.maincamSize )
-                .setPosition( this.maincamOffset, 0 )
-                .startFollow( this.player.container, false, 0.4, 0.4 );
+                .setSize( this.cameraProps.size, this.cameraProps.size )
+                .setPosition( this.cameraProps.offset, 0 )
+                .startFollow( this.player.container, false, this.cameraProps.lerp );
         };
 
         setupMinimap() {
-            let coeff = this.maincamOffset / this.maincamSize;
+            let coeff = this.cameraProps.minimapCoefficient;
             this.minimap
                 .setName( 'mini' )
-                .setZoom( coeff * 0.75 )
+                .setZoom( coeff * this.cameraProps.zoom )
                 .setBounds( this.boundX, this.boundY, this.boundW, this.boundH )
-                .setSize( coeff * this.maincamSize, coeff * this.maincamSize )
-                .setPosition( window.innerWidth - this.maincamOffset, 0 )
+                .setSize( coeff * this.cameraProps.size, coeff * this.cameraProps.size )
+                .setPosition( window.innerWidth - this.cameraProps.offset, 0 )
                 .setBackgroundColor( 0x002244 )
-                .startFollow( this.player.container, false, 0.4, 0.4 );
+                .startFollow( this.player.container, false, this.cameraProps.lerp );
         };
 
     }
@@ -359,10 +543,7 @@ window.onload = function () {
         fps: 30,
     };
 
-    // TODO: remove camera shaking
-    // TODO: scale camera zoom depending on screen size
-    // TODO: fix improper rotation angle
-    // TODO: fix collisions
+    // TODO: remove camera shaking - deal with velocity, huh
 
     const game = new Phaser.Game( config );
 };
