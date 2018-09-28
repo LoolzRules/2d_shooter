@@ -16,7 +16,7 @@ window.onload = function () {
                 SHOTGUN: 4,
                 TASER: 5,
                 GAS_MARKER: 6,
-            } )
+            } );
         }
 
         static get Stats() {
@@ -27,6 +27,9 @@ window.onload = function () {
                     spread: 5,
                     range: Infinity,
                     textureKey: 'w_pistol',
+                    pose: 1,
+                    x: 20,
+                    y: 0,
                 },
                 [Weapon.Enum.SILENCED_PISTOL]: {
                     fire_rate: 2,
@@ -34,6 +37,9 @@ window.onload = function () {
                     spread: 0,
                     range: Infinity,
                     textureKey: 'w_suppressed_pistol',
+                    pose: 1,
+                    x: 20,
+                    y: 0,
                 },
                 [Weapon.Enum.UZI]: {
                     fire_rate: 4,
@@ -41,6 +47,9 @@ window.onload = function () {
                     spread: 30,
                     range: Infinity,
                     textureKey: 'w_uzi',
+                    pose: 1,
+                    x: 20,
+                    y: 0,
                 },
                 [Weapon.Enum.ASSAULT_RIFLE]: {
                     fire_rate: 3,
@@ -48,6 +57,9 @@ window.onload = function () {
                     spread: 8,
                     range: Infinity,
                     textureKey: 'w_assault_rifle',
+                    pose: 0,
+                    x: 20,
+                    y: 0,
                 },
                 [Weapon.Enum.SHOTGUN]: {
                     fire_rate: 1,
@@ -55,6 +67,9 @@ window.onload = function () {
                     spread: 30,
                     range: 1000,
                     textureKey: 'w_shotgun',
+                    pose: 0,
+                    x: 20,
+                    y: 0,
                 },
                 [Weapon.Enum.TASER]: {
                     fire_rate: 1,
@@ -62,6 +77,9 @@ window.onload = function () {
                     spread: 2,
                     range: 200,
                     textureKey: 'w_taser',
+                    pose: 1,
+                    x: 20,
+                    y: 0,
                 },
                 [Weapon.Enum.GAS_MARKER]: {
                     fire_rate: 2,
@@ -69,6 +87,9 @@ window.onload = function () {
                     spread: 8,
                     range: 2000,
                     textureKey: 'w_gas_marker',
+                    pose: 0,
+                    x: 20,
+                    y: 0,
                 },
             };
         }
@@ -87,7 +108,7 @@ window.onload = function () {
                 HELMET: 1,
                 GAS_MASK: 2,
                 NIGHT_VISION: 3,
-            } )
+            } );
         }
 
         static get Stats() {
@@ -128,7 +149,7 @@ window.onload = function () {
                 NONE: 0,
                 LIGHT: 1,
                 HEAVY: 2,
-            } )
+            } );
         }
 
         static get Stats() {
@@ -159,9 +180,9 @@ window.onload = function () {
             this.speed = 300;
             this.fov = Math.PI / 2;
 
-            this.body = scene.add.sprite( 10, 0, 'body' );
-            this.rifle = scene.add.sprite( 20, 0, 'rifle' );
-            this.head = scene.add.sprite( -5, -5, 'head' );
+            this.body = scene.add.sprite( 10, 0, 'b_light_1' );
+            this.rifle = scene.add.sprite( 20, 0, 'w_assault_rifle' );
+            this.head = scene.add.image( -5, -5, 'h_none' );
 
             this.container = scene.add.container( x, y );
             this.container
@@ -232,7 +253,7 @@ window.onload = function () {
         }
 
         makeRaycast() {
-            let fovPolygonPoints = this.raycaster.generateIntersectionPoints(
+            const fovPolygonPoints = this.raycaster.generateIntersectionPoints(
                 this.container.x,
                 this.container.y,
                 this.angle,
@@ -269,15 +290,15 @@ window.onload = function () {
                 map[key] = scene.physics.add.staticGroup();
 
                 mapData[key].forEach( ( element ) => {
-                    let color = Number.parseInt( element.fill, 16 );
-                    let alpha = Number.parseFloat( element.fillOpacity ) || 1;
+                    const color = Number.parseInt( element.fill, 16 );
+                    const alpha = Number.parseFloat( element.fillOpacity ) || 1;
 
-                    let x = Number.parseInt( element.x, 10 ) + scene.boundX;
-                    let y = Number.parseInt( element.y, 10 ) + scene.boundY;
-                    let w = Number.parseInt( element.width, 10 );
-                    let h = Number.parseInt( element.height, 10 );
+                    const x = Number.parseInt( element.x, 10 ) + scene.boundX;
+                    const y = Number.parseInt( element.y, 10 ) + scene.boundY;
+                    const w = Number.parseInt( element.width, 10 );
+                    const h = Number.parseInt( element.height, 10 );
 
-                    let rect = scene.add.rectangle( x, y, w, h, color, alpha )
+                    const rect = scene.add.rectangle( x, y, w, h, color, alpha )
                         .setOrigin( 0 );
 
                     map[key].add( rect );
@@ -324,9 +345,9 @@ window.onload = function () {
 
         generateIntersectionPoints( x, y, playerAngle, fov ) {
 
-            let availablePoints = this.uniquePoints;
+            const availablePoints = this.uniquePoints;
 
-            let edgeAngles = [
+            const edgeAngles = [
                 playerAngle - fov / 2,
                 playerAngle + fov / 2
             ];
@@ -335,10 +356,10 @@ window.onload = function () {
                 x, y, angle: -Infinity
             }];
 
-            // Intersections of FOV edges
+            // Intersections of rays casted to FOV edges
             edgeAngles.forEach( ( angle ) => {
-                let ray = Raycaster.makeRay( x, y, angle );
-                let closestIntersection = this.getClosestIntersection( ray );
+                const ray = Raycaster.makeRay( x, y, angle );
+                const closestIntersection = this.getClosestIntersection( ray );
 
                 if ( closestIntersection !== null ) {
                     closestIntersection.angle = angle;
@@ -346,19 +367,19 @@ window.onload = function () {
                 }
             } );
 
-            // Intersections of rays to corners
+            // Intersections of rays casted to corners
             availablePoints.forEach( ( point ) => {
-                let initAngle = (Math.PI + Phaser.Math.Angle.Between( point.x, point.y, x, y ));
+                const initAngle = (Math.PI + Phaser.Math.Angle.Between( point.x, point.y, x, y ));
 
-                let coeff = 2 * Math.PI;
+                const coeff = 2 * Math.PI;
                 if ( !(initAngle > coeff + edgeAngles[0] && initAngle < coeff + edgeAngles[1]) &&
                     !(initAngle > edgeAngles[0] && initAngle < edgeAngles[1]) ) return;
 
                 for ( let i = -1; i < 2; i++ ) {
-                    let angle = initAngle + i * 0.00001;
+                    const angle = initAngle + i * 0.00001;
 
-                    let ray = Raycaster.makeRay( x, y, angle );
-                    let closestIntersection = this.getClosestIntersection( ray );
+                    const ray = Raycaster.makeRay( x, y, angle );
+                    const closestIntersection = this.getClosestIntersection( ray );
 
                     if ( closestIntersection !== null ) {
                         closestIntersection.angle = angle;
@@ -393,11 +414,11 @@ window.onload = function () {
                 return null;
 
 
-            let T2 = (r.dx * (s.y - r.y) + r.dy * (r.x - s.x)) / (s.dx * r.dy - s.dy * r.dx);
+            const T2 = (r.dx * (s.y - r.y) + r.dy * (r.x - s.x)) / (s.dx * r.dy - s.dy * r.dx);
             if ( T2 < 0 || T2 > 1 )
                 return null;
 
-            let T1 = (s.x + s.dx * T2 - r.x) / r.dx;
+            const T1 = (s.x + s.dx * T2 - r.x) / r.dx;
             if ( T1 < 0 )
                 return null;
 
@@ -420,7 +441,7 @@ window.onload = function () {
     class MainScene extends Phaser.Scene {
         constructor() {
             super( {
-                key: 'mainScene',
+                key: 'main',
                 active: true,
                 physics: {
                     default: 'arcade',
@@ -430,8 +451,13 @@ window.onload = function () {
                 },
             } );
 
-            let maincamSize = window.innerHeight;
-            let maincamOffset = (window.innerWidth - window.innerHeight) / 2;
+            const maincamSize = window.innerHeight;
+            const maincamOffset = (window.innerWidth - window.innerHeight) / 2;
+
+            this.viewportSize = {
+                height: window.innerHeight,
+                width: window.innerWidth,
+            };
 
             this.cameraProps = {
                 size: maincamSize,
@@ -449,17 +475,87 @@ window.onload = function () {
         }
 
         preload() {
-            this.load.setBaseURL( 'http://localhost:3000' );
-            this.load.svg( 'body', 'assets/body/b_light_1.svg' );
-            this.load.svg( 'rifle', 'assets/weapon/w_assault_rifle.svg' );
-            this.load.svg( 'head', 'assets/head/h_gas.svg' );
-            this.load.json( 'map', 'assets/maps/1.json' );
+            this.load.setBaseURL( 'http://localhost:3000/assets' );
+
+            const loadingText = this.make.text( {
+                x: this.viewportSize.width / 2,
+                y: this.viewportSize.height / 2 - 25,
+                text: 'Loading...',
+                style: {
+                    font: '20px monospace',
+                    fill: '#ffffff'
+                }
+            } ).setOrigin( 0.5, 0.5 );
+
+            const assetText = this.make.text( {
+                x: this.viewportSize.width / 2,
+                y: this.viewportSize.height / 2 + 5,
+                text: '',
+                style: {
+                    font: '18px monospace',
+                    fill: '#ffffff'
+                }
+            } ).setOrigin( 0.5, 0.5 );
+
+            this.load.on( 'progress', function ( value ) {
+                loadingText.setText( `Loading: ${Math.round( value * 100, 2 )}` );
+            } );
+
+            this.load.on( 'fileprogress', function ( file ) {
+                assetText.setText( `Loading asset: .../${file.url}` );
+            } );
+
+            this.load.on( 'complete', function () {
+                loadingText.destroy();
+                assetText.destroy();
+            } );
+
+            const info = {
+                "svg": {
+                    "body": [
+                        "b_heavy_1",
+                        "b_heavy_2",
+                        "b_light_1",
+                        "b_light_2",
+                        "b_none_1",
+                        "b_none_2"
+                    ],
+                    "head": [
+                        "h_gas",
+                        "h_helmet",
+                        "h_night",
+                        "h_none"
+                    ],
+                    "weapon": [
+                        "w_assault_rifle",
+                        "w_gas_marker",
+                        "w_pistol",
+                        "w_shotgun",
+                        "w_suppressed_pistol",
+                        "w_taser",
+                        "w_uzi"
+                    ]
+                },
+                "json": {
+                    "maps": [
+                        "1"
+                    ]
+                }
+            };
+
+            Object.keys( info ).forEach( ( fileType ) => {
+                Object.keys( info[fileType] ).forEach( ( assetFolder ) => {
+                    info[fileType][assetFolder].forEach( ( key ) => {
+                        this.load[fileType]( `${key}`, `${assetFolder}/${key}.${fileType}` );
+                    } );
+                } );
+            } );
         };
 
         create() {
 
             // Building maps
-            let { map, uniquePoints, segments } = Map.generate( this, this.cache.json.get( 'map' ) );
+            const { map, uniquePoints, segments } = Map.generate( this, this.cache.json.get( '1' ) );
             this.map = map;
 
             // Enabling world bounds
@@ -539,7 +635,9 @@ window.onload = function () {
         width: document.body.scrollWidth,
         height: document.body.scrollHeight,
         backgroundColor: '#000000',
-        scene: [MainScene],
+        scene: [
+            MainScene
+        ],
         fps: 30,
     };
 
