@@ -27,7 +27,12 @@ export class Body {
     }
 }
 
-export const BodyEnum = new Map<string, BodyProps>([
+export type BodyType =
+    "NONE" |
+    "LIGHT" |
+    "HEAVY";
+
+export const BodyEnum = new Map<BodyType, BodyProps>([
     ["NONE", {
         armor: 0,
         speedModifier: 1,

@@ -23,7 +23,13 @@ export class Head {
     }
 }
 
-export const HeadEnum = new Map<string, HeadProps>([
+export type HeadType =
+    "NONE" |
+    "GAS_MASK" |
+    "HELMET" |
+    "NIGHT_VISION";
+
+export const HeadEnum = new Map<HeadType, HeadProps>([
     ["NONE", {
         armor: 0,
         fov: 120,

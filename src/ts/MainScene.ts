@@ -1,6 +1,7 @@
 import {GameMap} from "./GameMap";
 import {Player} from "./Player";
 import {Raycaster} from "./Raycaster";
+import assetInfo from "./assetInfo.json";
 
 interface ViewportSize {
     height: number,
@@ -51,7 +52,7 @@ export class MainScene extends Phaser.Scene {
             physics: {
                 default: 'arcade',
                 arcade: {
-                    // debug: true
+                    debug: true
                 }
             },
         });
@@ -111,42 +112,9 @@ export class MainScene extends Phaser.Scene {
             assetText.destroy();
         });
 
-        const info: Object = {
-            "svg": {
-                "body": [
-                    "b_heavy_1",
-                    "b_heavy_2",
-                    "b_light_1",
-                    "b_light_2",
-                    "b_none_1",
-                    "b_none_2"
-                ],
-                "head": [
-                    "h_gas",
-                    "h_helmet",
-                    "h_night",
-                    "h_none"
-                ],
-                "weapon": [
-                    "w_assault_rifle",
-                    "w_gas_marker",
-                    "w_pistol",
-                    "w_shotgun",
-                    "w_suppressed_pistol",
-                    "w_taser",
-                    "w_uzi"
-                ]
-            },
-            "json": {
-                "maps": [
-                    "1"
-                ]
-            }
-        };
-
-        Object.keys(info).forEach((fileType: string) => {
-            Object.keys(info[fileType]).forEach((assetFolder: string) => {
-                info[fileType][assetFolder].forEach((key: string) => {
+        Object.keys(assetInfo).forEach((fileType: string) => {
+            Object.keys(assetInfo[fileType]).forEach((assetFolder: string) => {
+                assetInfo[fileType][assetFolder].forEach((key: string) => {
                     this.load[fileType](`${key}`, `${assetFolder}/${key}.${fileType}`);
                 });
             });
@@ -179,7 +147,9 @@ export class MainScene extends Phaser.Scene {
         // Enabling collisions
         // TODO: figure out how to fix them
         for (let key in this.map.map.keys()) {
-            this.physics.world.addCollider(() => this.player.container, () => this.map.map.get(key));
+            this.physics.world.addCollider(
+                this.player.container,
+                this.map.map.get(key));
         }
 
 

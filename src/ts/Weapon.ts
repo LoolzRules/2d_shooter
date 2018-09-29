@@ -35,7 +35,16 @@ export class Weapon {
     }
 }
 
-export const WeaponEnum = new Map<string, WeaponProps>([
+export type WeaponType =
+    "PISTOL" |
+    "SILENCED_PISTOL" |
+    "UZI" |
+    "ASSAULT_RIFLE" |
+    "SHOTGUN" |
+    "TASER" |
+    "GAS_MARKER";
+
+export const WeaponEnum = new Map<WeaponType, WeaponProps>([
     ["PISTOL", {
         fireRate: 2,
         damage: 15,
