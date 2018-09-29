@@ -67,14 +67,6 @@ export class MainScene extends Phaser.Scene {
             lerp: 1,
             minimapCoefficient: maincamOffset / maincamSize,
         };
-        this.controls = {
-            w: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-            a: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-            s: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-            d: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-            cursorX: 0,
-            cursorY: 0,
-        };
 
         this.boundX = -900;
         this.boundY = -600;
@@ -162,6 +154,15 @@ export class MainScene extends Phaser.Scene {
     };
 
     create() {
+        // Adding input
+        this.controls = {
+            w: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            a: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            s: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+            d: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+            cursorX: 0,
+            cursorY: 0,
+        };
 
         // Building maps
         this.map = new GameMap(this, this.cache.json.get('1'));
@@ -176,6 +177,7 @@ export class MainScene extends Phaser.Scene {
         this.player = new Player(this, 0, 0, new Raycaster(this.map));
 
         // Enabling collisions
+        // TODO: figure out how to fix them
         for (let key in this.map.map.keys()) {
             this.physics.world.addCollider(() => this.player.container, () => this.map.map.get(key));
         }

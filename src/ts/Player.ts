@@ -26,7 +26,7 @@ export class Player {
 
         this.body = Body.makeBody(BodyEnum.get("LIGHT"), scene);
         this.weapon = Weapon.makeWeapon(WeaponEnum.get("ASSAULT_RIFLE"), scene);
-        this.head = Head.makeHead(HeadEnum.get("NONE"), scene);
+        this.head = Head.makeHead(HeadEnum.get("NIGHT_VISION"), scene);
 
         this._container = scene.add.container(x, y);
         this._container
@@ -58,6 +58,7 @@ export class Player {
         else if (w && !s) this.containerBody.setVelocityY(-this.speed);
         else this.containerBody.setVelocityY(0);
 
+        // // Speed debug
         // // Smooth as hell but no collisions
         // if ( d && !a ) {
         //     this.container.x += this.speed / 60;
@@ -85,6 +86,7 @@ export class Player {
             x, y
         );
 
+        // // Speed debug
         // console.log(
         //     this.container.x + this.scene.cameraProps.offset,
         //     this.container.y + 0,
@@ -116,7 +118,7 @@ export class Player {
     }
 
     get fov(): number {
-        return this.head.fov;
+        return this.head.fov / 180 * Math.PI;
     }
 
     get speed(): number {
