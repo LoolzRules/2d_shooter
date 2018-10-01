@@ -16,7 +16,7 @@ window.onload = function () {
                 .add( [this.body, this.rifle, this.head] )
                 .setDepth( 100 );
 
-            scene.physics.world.enable( this.container );
+            scene.physics.add.existing( this.container );
             this.container.body
                 .setCircle( 36, -36, -36 )
                 .setCollideWorldBounds( true );

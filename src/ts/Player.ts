@@ -33,7 +33,7 @@ export class Player {
             .add([this.body.sprite, this.weapon.sprite, this.head.sprite])
             .setDepth(100);
 
-        scene.physics.world.enable(this._container);
+        scene.physics.add.existing(this._container);
         this.containerBody
             .setCircle(36, -36, -36)
             .setCollideWorldBounds(true);
