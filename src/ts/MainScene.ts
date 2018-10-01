@@ -79,7 +79,12 @@ export class MainScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.setBaseURL('http://localhost:3000/assets');
+        const current_path = window.location.pathname;
+        const current_url = window.location.href;
+        const n = current_url.lastIndexOf(current_path);
+        const ASSET_PATH = current_url.slice(0, n) + '/assets';
+
+        this.load.setBaseURL(ASSET_PATH);
 
         const loadingText = this.make.text({
             x: this.viewportSize.width / 2,
