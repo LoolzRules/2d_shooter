@@ -16,7 +16,6 @@ window.onload = function () {
         },
     };
 
-    // TODO: remove camera shaking - deal with velocity, huh
-
-    const game: Phaser.Game = new Phaser.Game( config );
+    // TODO: remove camera shaking finally
+    const game: Phaser.Game = new Phaser.Game(config);
 };

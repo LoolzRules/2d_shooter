@@ -9,12 +9,9 @@
       "es7",
       "dom",
       "scripthost"
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "*": [
-        "src/ts/*"
-      ]
-    }
-  }
+    ]
+  },
+  "include": [
+    "src/ts/**/*"
+  ]
 }

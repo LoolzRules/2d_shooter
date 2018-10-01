@@ -42,63 +42,44 @@ export class Player {
         this.makeRaycast();
     }
 
-    update(w, a, s, d, x, y): void {
-        this.modifyAngle(x, y);
-        this.modifyPosition(w, a, s, d);
+    get container(): Phaser.GameObjects.Container {
+        return this._container;
+    }
+
+    update(w, a, s, d, x, y, delta): void {
         this.fovPolygon.destroy();
+        this.modifyPosition(w, a, s, d, delta);
+        if (x !== null && y !== null) this.modifyAngle(x, y);
         this.makeRaycast();
     }
 
-    modifyPosition(w, a, s, d) {
-        if (d && !a) this.containerBody.setVelocityX(this.speed);
-        else if (a && !d) this.containerBody.setVelocityX(-this.speed);
+    modifyPosition(w, a, s, d, delta): void {
+        const COEFF = 20;
+
+        if (d && !a) this.containerBody.setVelocityX(this.speed * COEFF / delta);
+        else if (a && !d) this.containerBody.setVelocityX(-this.speed * COEFF / delta);
         else this.containerBody.setVelocityX(0);
 
-        if (s && !w) this.containerBody.setVelocityY(this.speed);
-        else if (w && !s) this.containerBody.setVelocityY(-this.speed);
+        if (s && !w) this.containerBody.setVelocityY(this.speed * COEFF / delta);
+        else if (w && !s) this.containerBody.setVelocityY(-this.speed * COEFF / delta);
         else this.containerBody.setVelocityY(0);
 
-        // // Speed debug
-        // // Smooth as hell but no collisions
-        // if ( d && !a ) {
-        //     this.container.x += this.speed / 60;
-        //     this.container.body.x += this.speed / 60;
-        // }
-        // else if ( a && !d ) {
-        //     this.container.x -= this.speed / 60;
-        //     this.container.body.x -= this.speed / 60;
-        // }
-        //
-        // if ( s && !w ) {
-        //     this.container.y += this.speed / 60;
-        //     this.container.body.y += this.speed / 60;
-        // } else if ( w && !s ) {
-        //     this.container.y -= this.speed / 60;
-        //     this.container.body.y -= this.speed / 60;
-        // }
+        this.containerBody.velocity.normalize().scale(this.speed * COEFF / delta);
     }
 
-    modifyAngle(x, y) {
+    modifyAngle(x, y): void {
 
         this.angle = Phaser.Math.Angle.Between(
-            this._container.x + this.scene.cameraProps.offset,
-            this._container.y + 0,
-            x, y
+            this.container.x + this.scene.cameraProps.offsetX,
+            this.container.y,
+            x,
+            y
         );
-
-        // // Speed debug
-        // console.log(
-        //     this.container.x + this.scene.cameraProps.offset,
-        //     this.container.y + 0,
-        //     x,
-        //     y,
-        //     this.container.body.touching.none
-        // );
 
         this._container.setRotation(this.angle);
     }
 
-    makeRaycast() {
+    makeRaycast(): void {
         const fovPolygonPoints: Array<Point> = this.raycaster.generateIntersectionPoints(
             this._container.x,
             this._container.y,
@@ -107,10 +88,6 @@ export class Player {
         );
         this.fovPolygon = this.scene.add.polygon(0, 0, fovPolygonPoints, 0xffffff, 0.3)
             .setOrigin(0);
-    }
-
-    get container() {
-        return this._container;
     }
 
     get containerBody(): Phaser.Physics.Arcade.Body {

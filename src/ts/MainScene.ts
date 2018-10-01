@@ -10,7 +10,7 @@ interface ViewportSize {
 
 interface CameraProps {
     size: number,
-    offset: number,
+    offsetX: number,
     zoom: number,
     lerp: number,
     minimapCoefficient: number,
@@ -21,8 +21,9 @@ interface Controls {
     a: Phaser.Input.Keyboard.Key,
     s: Phaser.Input.Keyboard.Key,
     d: Phaser.Input.Keyboard.Key,
-    cursorX: number,
-    cursorY: number,
+    cursorX: number | null,
+    cursorY: number | null,
+    mouseMoved: boolean,
 }
 
 
@@ -34,6 +35,7 @@ export class MainScene extends Phaser.Scene {
     private maincam: Phaser.Cameras.Scene2D.Camera;
     private minimap: Phaser.Cameras.Scene2D.Camera;
     private player: Player;
+    private fps: Phaser.GameObjects.Text;
     public cameraProps: CameraProps;
 
     readonly boundX: number;
@@ -63,7 +65,7 @@ export class MainScene extends Phaser.Scene {
         };
         this.cameraProps = {
             size: maincamSize,
-            offset: maincamOffset,
+            offsetX: maincamOffset,
             zoom: Math.round(maincamSize / 70) / 10,
             lerp: 1,
             minimapCoefficient: maincamOffset / maincamSize,
@@ -130,6 +132,7 @@ export class MainScene extends Phaser.Scene {
             d: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
             cursorX: 0,
             cursorY: 0,
+            mouseMoved: false,
         };
 
         // Building maps
@@ -145,12 +148,12 @@ export class MainScene extends Phaser.Scene {
         this.player = new Player(this, 0, 0, new Raycaster(this.map));
 
         // Enabling collisions
-        // TODO: figure out how to fix them
-        for (let key in this.map.map.keys()) {
+        this.map.staticGroups.forEach((group, key) => {
+            console.log(key);
             this.physics.world.addCollider(
                 this.player.container,
-                this.map.map.get(key));
-        }
+                this.map.staticGroups.get(key));
+        });
 
 
         // Setting up main camera
@@ -164,18 +167,32 @@ export class MainScene extends Phaser.Scene {
         this.input.on('pointermove', function (pointer) {
             this.controls.cursorX = pointer.x;
             this.controls.cursorY = pointer.y;
+            this.controls.mouseMoved = true;
         }, this);
+
+        this.fps = this.make.text({
+            x: 0,
+            y: 0,
+            text: '',
+            style: {
+                font: '18px monospace',
+                fill: '#ffffff'
+            }
+        });
     };
 
-    update() {
+    update(time, delta) {
+        this.fps.text = (1 / delta * 1000).toFixed(2);
         this.player.update(
             this.controls.w.isDown,
             this.controls.a.isDown,
             this.controls.s.isDown,
             this.controls.d.isDown,
-            this.controls.cursorX + this.cameras.main.scrollX,
-            this.controls.cursorY + this.cameras.main.scrollY,
+            this.controls.mouseMoved ? (this.controls.cursorX + this.cameras.main.scrollX) : null,
+            this.controls.mouseMoved ? (this.controls.cursorY + this.cameras.main.scrollY) : null,
+            delta,
         );
+        this.controls.mouseMoved = false;
     };
 
     setupMainCamera() {
@@ -185,7 +202,7 @@ export class MainScene extends Phaser.Scene {
             .setZoom(this.cameraProps.zoom)
             .setBounds(this.boundX, this.boundY, this.boundW, this.boundH)
             .setSize(this.cameraProps.size, this.cameraProps.size)
-            .setPosition(this.cameraProps.offset, 0);
+            .setPosition(this.cameraProps.offsetX, 0);
     };
 
     setupMinimap() {
@@ -196,8 +213,7 @@ export class MainScene extends Phaser.Scene {
             .setZoom(coeff * this.cameraProps.zoom)
             .setBounds(this.boundX, this.boundY, this.boundW, this.boundH)
             .setSize(coeff * this.cameraProps.size, coeff * this.cameraProps.size)
-            .setPosition(window.innerWidth - this.cameraProps.offset, 0)
-            .setBackgroundColor(0x002244);
+            .setPosition(window.innerWidth - this.cameraProps.offsetX, 0);
     };
 
 }

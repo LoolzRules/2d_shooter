@@ -15,12 +15,8 @@ export interface Segment {
 
 export class GameMap {
 
-    private _map: Map<string, Phaser.Physics.Arcade.StaticGroup>;
-    private _points: Array<Point>;
-    private _segments: Array<Segment>;
-
     constructor(scene: MainScene, mapData: JSON) {
-        this._map = new Map();
+        this._staticGroups = new Map();
         this._points = [
             {x: scene.boundX, y: scene.boundY},
             {x: scene.boundX + scene.boundW, y: scene.boundY},
@@ -60,7 +56,7 @@ export class GameMap {
 
 
         Object.keys(mapData).forEach((key: string) => {
-            this._map[key] = scene.physics.add.staticGroup();
+            this._staticGroups.set(key, scene.physics.add.staticGroup());
 
             mapData[key].forEach((element) => {
                 const color: number = Number.parseInt(element.fill, 16);
@@ -71,11 +67,10 @@ export class GameMap {
                 const w: number = Number.parseInt(element.width, 10);
                 const h: number = Number.parseInt(element.height, 10);
 
-                const rect: Phaser.GameObjects.Rectangle =
-                    scene.add.rectangle(x, y, w, h, color, alpha)
+                const rect = scene.add.rectangle(x, y, w, h, color, alpha)
                         .setOrigin(0);
 
-                this._map[key].add(rect);
+                this._staticGroups.get(key).add(rect);
 
                 if (key !== "wn") {
                     this._points.push(
@@ -95,7 +90,6 @@ export class GameMap {
             });
         });
 
-
         // Leave only unique points
         this._points.sort((a: Point, b: Point) => {
             return a.x - b.x || a.y - b.y;
@@ -112,8 +106,13 @@ export class GameMap {
         this._points = uniquePoints;
     }
 
-    get map(): Map<string, Phaser.Physics.Arcade.StaticGroup> {
-        return this._map;
+    private _points: Array<Point>;
+    private _segments: Array<Segment>;
+
+    private _staticGroups: Map<string, Phaser.Physics.Arcade.StaticGroup>;
+
+    get staticGroups(): Map<string, Phaser.Physics.Arcade.StaticGroup> {
+        return this._staticGroups;
     }
 
     get points(): Array<Point> {
