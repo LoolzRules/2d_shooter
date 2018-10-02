@@ -15,6 +15,10 @@ export interface Segment {
 
 export class GameMap {
 
+    private _points: Array<Point>;
+    private _segments: Array<Segment>;
+    private _staticGroups: Map<string, Phaser.Physics.Arcade.StaticGroup>;
+
     constructor(scene: MainScene, mapData: JSON) {
         this._staticGroups = new Map();
         this._points = [
@@ -105,11 +109,6 @@ export class GameMap {
 
         this._points = uniquePoints;
     }
-
-    private _points: Array<Point>;
-    private _segments: Array<Segment>;
-
-    private _staticGroups: Map<string, Phaser.Physics.Arcade.StaticGroup>;
 
     get staticGroups(): Map<string, Phaser.Physics.Arcade.StaticGroup> {
         return this._staticGroups;
