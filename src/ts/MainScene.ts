@@ -21,16 +21,30 @@ interface Controls {
     a: Phaser.Input.Keyboard.Key,
     s: Phaser.Input.Keyboard.Key,
     d: Phaser.Input.Keyboard.Key,
-    cursorX: number | null,
-    cursorY: number | null,
-    mouseMoved: boolean,
+    r: Phaser.Input.Keyboard.Key,
+    pointer: Phaser.Input.Pointer,
 }
 
 
 export class MainScene extends Phaser.Scene {
 
+    private maincam: Phaser.Cameras.Scene2D.Camera;
+    private minimap: Phaser.Cameras.Scene2D.Camera;
+    private player: Player;
+    private fps: Phaser.GameObjects.Text;
+    public cameraProps: CameraProps;
+
+    readonly boundX: number;
+    readonly boundY: number;
+    readonly boundW: number;
+    readonly boundH: number;
+
+    private _map: GameMap;
+
     private viewportSize: ViewportSize;
     private controls: Controls;
+    private _ricochetParticleEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+
     constructor() {
 
         const maincamSize = window.innerHeight;
@@ -65,19 +79,6 @@ export class MainScene extends Phaser.Scene {
         this.boundH = -2 * this.boundY;
 
     }
-
-    private maincam: Phaser.Cameras.Scene2D.Camera;
-    private minimap: Phaser.Cameras.Scene2D.Camera;
-    private player: Player;
-    private fps: Phaser.GameObjects.Text;
-    public cameraProps: CameraProps;
-
-    readonly boundX: number;
-    readonly boundY: number;
-    readonly boundW: number;
-    readonly boundH: number;
-
-    private _map: GameMap;
 
     preload() {
         const current_path = window.location.pathname;
@@ -129,45 +130,6 @@ export class MainScene extends Phaser.Scene {
         });
     };
 
-    get map(): GameMap {
-        return this._map;
-    }
-
-    update(time, delta) {
-        this.fps.text = (1 / delta * 1000).toFixed(2);
-        this.player.update(
-            this.controls.w.isDown,
-            this.controls.a.isDown,
-            this.controls.s.isDown,
-            this.controls.d.isDown,
-            this.controls.mouseMoved ? (this.controls.cursorX + this.cameras.main.scrollX) : null,
-            this.controls.mouseMoved ? (this.controls.cursorY + this.cameras.main.scrollY) : null,
-            delta,
-        );
-        this.controls.mouseMoved = false;
-    };
-
-    setupMainCamera() {
-        this.maincam
-            .startFollow(this.player.container, false, this.cameraProps.lerp)
-            .setName('main')
-            .setZoom(this.cameraProps.zoom)
-            .setBounds(this.boundX, this.boundY, this.boundW, this.boundH)
-            .setSize(this.cameraProps.size, this.cameraProps.size)
-            .setPosition(this.cameraProps.offsetX, 0);
-    };
-
-    setupMinimap() {
-        let coeff = this.cameraProps.minimapCoefficient;
-        this.minimap
-            .startFollow(this.player.container, false, this.cameraProps.lerp)
-            .setName('mini')
-            .setZoom(coeff * this.cameraProps.zoom)
-            .setBounds(this.boundX, this.boundY, this.boundW, this.boundH)
-            .setSize(coeff * this.cameraProps.size, coeff * this.cameraProps.size)
-            .setPosition(window.innerWidth - this.cameraProps.offsetX, 0);
-    };
-
     create() {
         // Adding input
         this.controls = {
@@ -175,9 +137,8 @@ export class MainScene extends Phaser.Scene {
             a: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
             s: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
             d: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-            cursorX: 0,
-            cursorY: 0,
-            mouseMoved: false,
+            r: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R),
+            pointer: this.input.activePointer,
         };
 
         // Building maps
@@ -192,13 +153,23 @@ export class MainScene extends Phaser.Scene {
         // Adding player
         this.player = new Player(this, 0, 0, new Raycaster(this._map));
 
-        // Enabling collisions
+        // Enabling player collisions
         this._map.staticGroups.forEach((group, key) => {
             this.physics.world.addCollider(
                 this.player.container,
                 this._map.staticGroups.get(key));
         });
 
+        // Enabling particle emitter manager
+        this._ricochetParticleEmitter = this.add.particles('p_ricochet').createEmitter({
+            on: false,
+            angle: {min: 0, max: 360},
+            speed: {start: 10, end: 0, ease: 'Back.easeOut'},
+            scale: {min: 0.9, max: 1},
+            alpha: {start: 1, end: 0},
+            lifespan: 500,
+            maxParticles: 60,
+        });
 
         // Setting up main camera
         this.maincam = this.cameras.main;
@@ -207,16 +178,6 @@ export class MainScene extends Phaser.Scene {
         // Adding minimap
         this.minimap = this.cameras.add();
         this.setupMinimap();
-
-        this.input.on('pointermove', function (pointer) {
-            this.controls.cursorX = pointer.x;
-            this.controls.cursorY = pointer.y;
-            this.controls.mouseMoved = true;
-        }, this);
-
-        this.input.on('pointerdown', function (pointer) {
-            this.player.weapon.fire(this);
-        }, this);
 
         this.fps = this.make.text({
             x: 0,
@@ -228,5 +189,56 @@ export class MainScene extends Phaser.Scene {
             }
         });
     };
+
+    update(time, delta) {
+        this.fps.text = (1 / delta * 1000).toFixed(2);
+        this.player.update(
+            this.controls.w.isDown,
+            this.controls.a.isDown,
+            this.controls.s.isDown,
+            this.controls.d.isDown,
+            this.controls.r.isDown,
+            this.controls.pointer.justMoved ? (this.controls.pointer.x + this.cameras.main.scrollX) : null,
+            this.controls.pointer.justMoved ? (this.controls.pointer.y + this.cameras.main.scrollY) : null,
+            this.controls.pointer.justDown,
+            this.controls.pointer.isDown,
+            delta,
+        );
+    };
+
+    setupMainCamera() {
+        this.maincam
+            .startFollow(this.player.container, false, this.cameraProps.lerp)
+            .setName('main')
+            .setZoom(this.cameraProps.zoom)
+            .setBounds(this.boundX - this.cameraProps.size,
+                this.boundY - this.cameraProps.size,
+                this.boundW + 2 * this.cameraProps.size,
+                this.boundH + 2 * this.cameraProps.size)
+            .setSize(this.cameraProps.size, this.cameraProps.size)
+            .setPosition(this.cameraProps.offsetX, 0);
+    };
+
+    setupMinimap() {
+        let coeff = this.cameraProps.minimapCoefficient;
+        this.minimap
+            .startFollow(this.player.container, false, this.cameraProps.lerp)
+            .setName('mini')
+            .setZoom(coeff * this.cameraProps.zoom)
+            .setBounds(this.boundX - this.cameraProps.size,
+                this.boundY - this.cameraProps.size,
+                this.boundW + 2 * this.cameraProps.size,
+                this.boundH + 2 * this.cameraProps.size)
+            .setSize(coeff * this.cameraProps.size, coeff * this.cameraProps.size)
+            .setPosition(window.innerWidth - this.cameraProps.offsetX, 0);
+    };
+
+    get map(): GameMap {
+        return this._map;
+    }
+
+    get ricochetParticleEmitter(): Phaser.GameObjects.Particles.ParticleEmitter {
+        return this._ricochetParticleEmitter;
+    }
 
 }

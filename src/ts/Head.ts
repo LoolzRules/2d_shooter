@@ -14,7 +14,7 @@ export class Head {
 
     public static makeHead(type: HeadProps, scene: Phaser.Scene): Head {
         let head: Head = new Head(type.armor, type.fov, type.textureKey);
-        head._sprite = scene.add.sprite(-5, -5, head.textureKey);
+        head._sprite = scene.add.sprite(-5, -2, head.textureKey);
         return head;
     }
 

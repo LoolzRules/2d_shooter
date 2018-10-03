@@ -14,12 +14,13 @@ export class Body {
 
     public static makeBody(type: BodyProps, scene: Phaser.Scene, num: number = 0): Body {
         let body: Body = new Body(type.armor, type.speedModifier, type.textureKey);
-        body.setSprite(num, scene);
+        body._sprite = scene.add.sprite(10, 0, body.textureKey[num]);
         return body;
     }
 
-    public setSprite(num: number, scene: Phaser.Scene) {
-        this._sprite = scene.add.sprite(10, 0, this.textureKey[num]);
+    public setSprite(num: number) {
+        this._sprite.setTexture(this.textureKey[num]);
+        this._sprite.setOrigin(0.5);
     }
 
     get sprite(): Phaser.GameObjects.Sprite {

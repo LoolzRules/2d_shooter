@@ -1,16 +1,9 @@
-<svg width="88" height="76" viewBox="0 0 88 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0)">
-<ellipse cx="32" cy="11" rx="11" ry="22" transform="rotate(-90 32 11)" fill="#0E4CC5"/>
-<ellipse cx="57.6274" cy="20.8995" rx="9" ry="23" transform="rotate(-45 57.6274 20.8995)" fill="#0E4CC5"/>
-<ellipse cx="30" cy="65" rx="11" ry="20" transform="rotate(-90 30 65)" fill="#0E4CC5"/>
-<ellipse cx="18" cy="38" rx="34" ry="18" transform="rotate(-90 18 38)" fill="#707070"/>
-<ellipse cx="51.4186" cy="60.7058" rx="9" ry="23" transform="rotate(60 51.4186 60.7058)" fill="#0E4CC5"/>
-<circle cx="70" cy="44.4116" r="10" transform="rotate(-90 70 44.4116)" fill="#3E3E3E"/>
-<circle cx="73" cy="38.4116" r="10" transform="rotate(-90 73 38.4116)" fill="#3E3E3E"/>
-</g>
-<defs>
-<clipPath id="clip0">
-<rect width="76" height="88" fill="white" transform="translate(0 76) rotate(-90)"/>
-</clipPath>
-</defs>
+<svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="32" cy="16" rx="11" ry="22" transform="rotate(-90 32 16)" fill="#0E4CC5"/>
+    <ellipse cx="57.6274" cy="25.8995" rx="9" ry="23" transform="rotate(-45 57.6274 25.8995)" fill="#0E4CC5"/>
+    <ellipse cx="30" cy="70" rx="11" ry="20" transform="rotate(-90 30 70)" fill="#0E4CC5"/>
+    <ellipse cx="18" cy="43" rx="34" ry="18" transform="rotate(-90 18 43)" fill="#707070"/>
+    <ellipse cx="51.4186" cy="65.7058" rx="9" ry="23" transform="rotate(60 51.4186 65.7058)" fill="#0E4CC5"/>
+    <circle cx="70" cy="49.4116" r="10" transform="rotate(-90 70 49.4116)" fill="#3E3E3E"/>
+    <circle cx="73" cy="43.4116" r="10" transform="rotate(-90 73 43.4116)" fill="#3E3E3E"/>
 </svg>
