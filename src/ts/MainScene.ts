@@ -42,7 +42,7 @@ export class MainScene extends Phaser.Scene {
             physics: {
                 default: 'arcade',
                 arcade: {
-                    // debug: true
+                    debug: true
                 }
             },
         });
