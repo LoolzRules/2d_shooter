@@ -16,6 +16,6 @@ window.onload = function () {
         },
     };
 
-    // TODO: remove camera shaking finally
+    // TODO: refactor classes
     const game: Phaser.Game = new Phaser.Game(config);
 };

@@ -4,6 +4,7 @@ import {Point} from "./GameMap";
 import {Body, BodyEnum} from "./Body";
 import {Head, HeadEnum} from "./Head";
 import {Weapon} from "./Weapon";
+import {SPEED_COEFF} from "./Constants";
 
 export class Player {
 
@@ -22,13 +23,12 @@ export class Player {
     constructor(scene: MainScene, x: number, y: number, raycaster: Raycaster) {
         this.scene = scene;
         this.angle = 0;
-        this.baseSpeed = 300;
-
-        this.body = Body.makeBody(BodyEnum.get("NONE"), scene);
-        this.head = Head.makeHead(HeadEnum.get("NONE"), scene);
-        this.weapon = Weapon.Builder.makeWeapon("PISTOL", scene, this);
+        this.baseSpeed = 200;
 
         this._container = scene.add.container(x, y);
+        this.body = Body.makeBody(BodyEnum.get("NONE"), scene);
+        this.head = Head.makeHead(HeadEnum.get("NONE"), scene);
+        this.weapon = Weapon.Builder.makeWeapon("ASSAULT_RIFLE", scene, this);
         this._container
             .add([this.body.sprite, this.weapon.sprite, this.head.sprite])
             .setDepth(100);
@@ -42,30 +42,38 @@ export class Player {
         this.makeRaycast();
     }
 
-    get container(): Phaser.GameObjects.Container {
-        return this._container;
-    }
+    update(w: boolean,
+           a: boolean,
+           s: boolean,
+           d: boolean,
+           r: boolean,
+           pointerX: number,
+           pointerY: number,
+           justPressed: boolean,
+           isPressed: boolean,
+           delta: number): void {
 
-    update(w, a, s, d, x, y, delta): void {
-        this.fovPolygon.destroy();
+        // Position
         this.modifyPosition(w, a, s, d, delta);
-        if (x !== null && y !== null) this.modifyAngle(x, y);
+        // Angle
+        if (pointerX !== null && pointerY !== null) this.modifyAngle(pointerX, pointerY);
+        // FOV
+        this.fovPolygon.destroy();
         this.makeRaycast();
-        this.weapon.update(delta);
+        // Weapon
+        this.weapon.update(r, justPressed, isPressed, delta);
     }
 
     modifyPosition(w, a, s, d, delta): void {
-        const COEFF = 20;
-
-        if (d && !a) this.containerBody.setVelocityX(this.speed * COEFF / delta);
-        else if (a && !d) this.containerBody.setVelocityX(-this.speed * COEFF / delta);
+        if (d && !a) this.containerBody.setVelocityX(this.speed * SPEED_COEFF / delta);
+        else if (a && !d) this.containerBody.setVelocityX(-this.speed * SPEED_COEFF / delta);
         else this.containerBody.setVelocityX(0);
 
-        if (s && !w) this.containerBody.setVelocityY(this.speed * COEFF / delta);
-        else if (w && !s) this.containerBody.setVelocityY(-this.speed * COEFF / delta);
+        if (s && !w) this.containerBody.setVelocityY(this.speed * SPEED_COEFF / delta);
+        else if (w && !s) this.containerBody.setVelocityY(-this.speed * SPEED_COEFF / delta);
         else this.containerBody.setVelocityY(0);
 
-        this.containerBody.velocity.normalize().scale(this.speed * COEFF / delta);
+        this.containerBody.velocity.normalize().scale(this.speed * SPEED_COEFF / delta);
     }
 
     modifyAngle(x, y): void {
@@ -87,8 +95,14 @@ export class Player {
             this.angle,
             this.fov
         );
+
         this.fovPolygon = this.scene.add.polygon(0, 0, fovPolygonPoints, 0xffffff, 0.3)
             .setOrigin(0);
+    }
+
+
+    get container(): Phaser.GameObjects.Container {
+        return this._container;
     }
 
     get containerBody(): Phaser.Physics.Arcade.Body {
@@ -105,5 +119,9 @@ export class Player {
 
     get armor(): number {
         return this.body.armor + this.head.armor;
+    }
+
+    setBodyTexture(n: number): void {
+        this.body.setSprite(n);
     }
 }
