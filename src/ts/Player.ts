@@ -3,13 +3,13 @@ import {Raycaster} from "./Raycaster";
 import {Point} from "./GameMap";
 import {Body, BodyEnum} from "./Body";
 import {Head, HeadEnum} from "./Head";
-import {Weapon, WeaponEnum} from "./Weapon";
+import {Weapon} from "./Weapon";
 
 export class Player {
 
     private readonly scene: MainScene;
     private readonly body: Body;
-    private readonly weapon: Weapon;
+    private readonly weapon: Weapon.Instance;
     private readonly head: Head;
     private readonly _container: Phaser.GameObjects.Container;
     private readonly raycaster: Raycaster;
@@ -24,9 +24,9 @@ export class Player {
         this.angle = 0;
         this.baseSpeed = 300;
 
-        this.body = Body.makeBody(BodyEnum.get("LIGHT"), scene);
-        this.weapon = Weapon.makeWeapon(WeaponEnum.get("ASSAULT_RIFLE"), scene);
-        this.head = Head.makeHead(HeadEnum.get("NIGHT_VISION"), scene);
+        this.body = Body.makeBody(BodyEnum.get("NONE"), scene);
+        this.head = Head.makeHead(HeadEnum.get("NONE"), scene);
+        this.weapon = Weapon.Builder.makeWeapon("PISTOL", scene, this);
 
         this._container = scene.add.container(x, y);
         this._container
@@ -51,6 +51,7 @@ export class Player {
         this.modifyPosition(w, a, s, d, delta);
         if (x !== null && y !== null) this.modifyAngle(x, y);
         this.makeRaycast();
+        this.weapon.update(delta);
     }
 
     modifyPosition(w, a, s, d, delta): void {

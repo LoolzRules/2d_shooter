@@ -31,18 +31,6 @@ export class MainScene extends Phaser.Scene {
 
     private viewportSize: ViewportSize;
     private controls: Controls;
-    private map: GameMap;
-    private maincam: Phaser.Cameras.Scene2D.Camera;
-    private minimap: Phaser.Cameras.Scene2D.Camera;
-    private player: Player;
-    private fps: Phaser.GameObjects.Text;
-    public cameraProps: CameraProps;
-
-    readonly boundX: number;
-    readonly boundY: number;
-    readonly boundW: number;
-    readonly boundH: number;
-
     constructor() {
 
         const maincamSize = window.innerHeight;
@@ -54,7 +42,7 @@ export class MainScene extends Phaser.Scene {
             physics: {
                 default: 'arcade',
                 arcade: {
-                    debug: true
+                    // debug: true
                 }
             },
         });
@@ -77,6 +65,19 @@ export class MainScene extends Phaser.Scene {
         this.boundH = -2 * this.boundY;
 
     }
+
+    private maincam: Phaser.Cameras.Scene2D.Camera;
+    private minimap: Phaser.Cameras.Scene2D.Camera;
+    private player: Player;
+    private fps: Phaser.GameObjects.Text;
+    public cameraProps: CameraProps;
+
+    readonly boundX: number;
+    readonly boundY: number;
+    readonly boundW: number;
+    readonly boundH: number;
+
+    private _map: GameMap;
 
     preload() {
         const current_path = window.location.pathname;
@@ -128,63 +129,9 @@ export class MainScene extends Phaser.Scene {
         });
     };
 
-    create() {
-        // Adding input
-        this.controls = {
-            w: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-            a: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-            s: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-            d: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-            cursorX: 0,
-            cursorY: 0,
-            mouseMoved: false,
-        };
-
-        // Building maps
-        this.map = new GameMap(this, this.cache.json.get('1'));
-
-        // Enabling world bounds
-        this.physics.world.setBounds(
-            this.boundX, this.boundY,
-            this.boundW, this.boundH,
-            true, true, true, true);
-
-        // Adding player
-        this.player = new Player(this, 0, 0, new Raycaster(this.map));
-
-        // Enabling collisions
-        this.map.staticGroups.forEach((group, key) => {
-            console.log(key);
-            this.physics.world.addCollider(
-                this.player.container,
-                this.map.staticGroups.get(key));
-        });
-
-
-        // Setting up main camera
-        this.maincam = this.cameras.main;
-        this.setupMainCamera();
-
-        // Adding minimap
-        this.minimap = this.cameras.add();
-        this.setupMinimap();
-
-        this.input.on('pointermove', function (pointer) {
-            this.controls.cursorX = pointer.x;
-            this.controls.cursorY = pointer.y;
-            this.controls.mouseMoved = true;
-        }, this);
-
-        this.fps = this.make.text({
-            x: 0,
-            y: 0,
-            text: '',
-            style: {
-                font: '18px monospace',
-                fill: '#ffffff'
-            }
-        });
-    };
+    get map(): GameMap {
+        return this._map;
+    }
 
     update(time, delta) {
         this.fps.text = (1 / delta * 1000).toFixed(2);
@@ -219,6 +166,67 @@ export class MainScene extends Phaser.Scene {
             .setBounds(this.boundX, this.boundY, this.boundW, this.boundH)
             .setSize(coeff * this.cameraProps.size, coeff * this.cameraProps.size)
             .setPosition(window.innerWidth - this.cameraProps.offsetX, 0);
+    };
+
+    create() {
+        // Adding input
+        this.controls = {
+            w: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            a: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            s: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+            d: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+            cursorX: 0,
+            cursorY: 0,
+            mouseMoved: false,
+        };
+
+        // Building maps
+        this._map = new GameMap(this, this.cache.json.get('1'));
+
+        // Enabling world bounds
+        this.physics.world.setBounds(
+            this.boundX, this.boundY,
+            this.boundW, this.boundH,
+            true, true, true, true);
+
+        // Adding player
+        this.player = new Player(this, 0, 0, new Raycaster(this._map));
+
+        // Enabling collisions
+        this._map.staticGroups.forEach((group, key) => {
+            this.physics.world.addCollider(
+                this.player.container,
+                this._map.staticGroups.get(key));
+        });
+
+
+        // Setting up main camera
+        this.maincam = this.cameras.main;
+        this.setupMainCamera();
+
+        // Adding minimap
+        this.minimap = this.cameras.add();
+        this.setupMinimap();
+
+        this.input.on('pointermove', function (pointer) {
+            this.controls.cursorX = pointer.x;
+            this.controls.cursorY = pointer.y;
+            this.controls.mouseMoved = true;
+        }, this);
+
+        this.input.on('pointerdown', function (pointer) {
+            this.player.weapon.fire(this);
+        }, this);
+
+        this.fps = this.make.text({
+            x: 0,
+            y: 0,
+            text: '',
+            style: {
+                font: '18px monospace',
+                fill: '#ffffff'
+            }
+        });
     };
 
 }
