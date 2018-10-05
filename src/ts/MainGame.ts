@@ -17,5 +17,8 @@ window.onload = function () {
     };
 
     // TODO: refactor classes
+    // TODO: add shadow layer
+    // TODO: revisit raycaster
+    // TODO: add doors and windows animations
     const game: Phaser.Game = new Phaser.Game(config);
 };

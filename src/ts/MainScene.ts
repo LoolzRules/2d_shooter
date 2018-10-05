@@ -34,10 +34,10 @@ export class MainScene extends Phaser.Scene {
     private fps: Phaser.GameObjects.Text;
     public cameraProps: CameraProps;
 
-    readonly boundX: number;
-    readonly boundY: number;
-    readonly boundW: number;
-    readonly boundH: number;
+    boundX: number;
+    boundY: number;
+    boundW: number;
+    boundH: number;
 
     private _map: GameMap;
 
@@ -56,7 +56,7 @@ export class MainScene extends Phaser.Scene {
             physics: {
                 default: 'arcade',
                 arcade: {
-                    debug: true
+                    // debug: true
                 }
             },
         });
@@ -73,10 +73,10 @@ export class MainScene extends Phaser.Scene {
             minimapCoefficient: maincamOffset / maincamSize,
         };
 
-        this.boundX = -900;
-        this.boundY = -600;
-        this.boundW = -2 * this.boundX;
-        this.boundH = -2 * this.boundY;
+        this.boundX = 0;
+        this.boundY = 0;
+        this.boundW = 0;
+        this.boundH = 0;
 
     }
 
@@ -151,7 +151,8 @@ export class MainScene extends Phaser.Scene {
             true, true, true, true);
 
         // Adding player
-        this.player = new Player(this, 0, 0, new Raycaster(this._map));
+        const spawnCoords = this.map.freeSpawnPoint;
+        this.player = new Player(this, spawnCoords.x, spawnCoords.y, new Raycaster(this._map));
 
         // Enabling player collisions
         this._map.staticGroups.forEach((group, key) => {

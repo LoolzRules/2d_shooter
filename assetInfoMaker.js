@@ -28,5 +28,5 @@ assetFolders.forEach( ( folderName ) => {
 
 fs.writeFileSync(
     path.join( TARGET_DIR, `assetInfo.json` ),
-    JSON.stringify( finalResult, null, 2 )
+    JSON.stringify( finalResult )
 );

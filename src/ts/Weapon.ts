@@ -53,14 +53,14 @@ export namespace Weapon {
             player.setBodyTexture(this.bodyType);
 
             this._tipShiftMagnitude = Phaser.Math.Distance.Between(
-                player.container.x,
-                player.container.y,
+                0,
+                0,
                 props.x,
                 props.y
             );
             this._tipShiftAngle = Phaser.Math.Angle.Between(
-                player.container.x,
-                player.container.y,
+                0,
+                0,
                 props.x,
                 props.y
             );
@@ -119,19 +119,16 @@ export namespace Weapon {
                     angle, this.type, this.scene);
                 bullet.containerBody.setCollideWorldBounds(false);
 
-                this.scene.map.staticGroups.forEach((staticGroup, key) => {
-                    // TODO: add group interactions by key
-                    this.scene.physics.add.collider(bullet.container, staticGroup,
-                        // TODO: set particle bounds by group member? Not sure
-                        (bullet: Phaser.GameObjects.Image, groupMember) => {
-                            this.scene.ricochetParticleEmitter.emitParticleAt(
-                                bullet.x,
-                                bullet.y,
-                                Phaser.Math.Between(2, 5)
-                            );
-                            bullet.destroy();
-                        });
-                });
+                this.scene.physics.add.collider(bullet.container, this.scene.map.staticGroups.get("VO"),
+                    // TODO: set particle bounds by group member? Not sure
+                    (bullet: Phaser.GameObjects.Image, groupMember) => {
+                        this.scene.ricochetParticleEmitter.emitParticleAt(
+                            bullet.x,
+                            bullet.y,
+                            Phaser.Math.Between(2, 5)
+                        );
+                        bullet.destroy();
+                    });
 
                 this.bulletsGroup.add(bullet.container);
                 this._bullets.push(bullet);
